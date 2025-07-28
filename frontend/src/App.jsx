@@ -35,7 +35,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BarChartIcon from "@mui/icons-material/BarChart";
 
 import MemberManagement from "./pages/MemberManagement";
-
+import Login from "./pages/login";
 const navItems = [
   { text: "Member Management", icon: <HomeIcon />, path: "/members" },
   { text: "Maintenance & Billing", icon: <AccountBalanceWalletIcon />, path: "/maintenance" },
@@ -166,6 +166,7 @@ export default function App() {
             <Toolbar />
             <Routes>
               <Route path="/members" element={<MemberManagement />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/maintenance" element={<Placeholder title="Maintenance & Billing" />} />
               <Route path="/accounting" element={<Placeholder title="Accounting & Finance" />} />
               <Route path="/complaints" element={<Placeholder title="Complaint & Service Request" />} />
