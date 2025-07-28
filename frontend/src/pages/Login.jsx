@@ -1,44 +1,85 @@
-import React, { useState } from "react";
-import { Box, TextField, Button, Typography, Alert } from "@mui/material";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const Login = () => {
-  const [form, setForm] = useState({ username: "", password: "" });
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+function Login({ setUser }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("username", res.data.username);
-
-      // Redirect based on role
-      if (res.data.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/members");
-      }
+      const res = await axios.post('http://localhost:5002/api/auth/login', { username, password });
+      setUser(res.data);
+      setError('');
     } catch (err) {
-      setError(err.response?.data?.error || "Login failed");
+      setError('Invalid credentials');
+    }
+  };
+
+  const styles = {
+    container: {
+      maxWidth: 400,
+      margin: '100px auto',
+      padding: '2rem',
+      background: '#fff',
+      borderRadius: '12px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      fontFamily: 'Arial, sans-serif'
+    },
+    heading: {
+      textAlign: 'center',
+      marginBottom: '1.5rem',
+      color: '#333'
+    },
+    input: {
+      width: '100%',
+      padding: '12px',
+      marginBottom: '1rem',
+      border: '1px solid #ccc',
+      borderRadius: '6px',
+      fontSize: '1rem'
+    },
+    button: {
+      width: '100%',
+      padding: '12px',
+      backgroundColor: '#007bff',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '6px',
+      fontSize: '1rem',
+      cursor: 'pointer'
+    },
+    error: {
+      marginTop: '1rem',
+      color: 'red',
+      textAlign: 'center'
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 400, mx: "auto", mt: 8 }}>
-      <Typography variant="h5" mb={2}>Login</Typography>
-      {error && <Alert severity="error">{error}</Alert>}
-      <TextField fullWidth label="Username" name="username" margin="normal" onChange={handleChange} />
-      <TextField fullWidth label="Password" name="password" type="password" margin="normal" onChange={handleChange} />
-      <Button variant="contained" fullWidth onClick={handleSubmit} sx={{ mt: 2 }}>
-        Login
-      </Button>
-    </Box>
+    <form onSubmit={handleLogin} style={styles.container}>
+      <h2 style={styles.heading}>Login</h2>
+      <input
+        type="text"
+        placeholder="Home Number"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
+        required
+        style={styles.input}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+        required
+        style={styles.input}
+      />
+      <button type="submit" style={styles.button}>Login</button>
+      {error && <div style={styles.error}>{error}</div>}
+    </form>
   );
-};
+}
 
 export default Login;

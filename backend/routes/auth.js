@@ -1,53 +1,44 @@
-// routes/auth.js
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-
+const express = require('express');
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
-// Register new user
-router.post("/register", async (req, res) => {
-  const { username, password, role, flatNumber, email, phone } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-  const user = new User({ username, password: hashed, role, flatNumber, email, phone });
+const JWT_SECRET = process.env.JWT_SECRET;
 
+// Register (admin only)
+router.post('/register', async (req, res) => {
+  const { username, password, role, homeNumber } = req.body;
   try {
+    const user = new User({ username, password, role, homeNumber });
     await user.save();
-    res.status(201).json({ message: "User created" });
+    res.status(201).json({ message: 'User registered' });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({ message: err.message });
   }
 });
 
 // Login
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username });
-
-  if (!user) return res.status(400).json({ error: "User not found" });
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ error: "Invalid password" });
-
-  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "1d" });
-  res.json({ token, role: user.role, username: user.username });
+  if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+  res.json({ token, role: user.role, username: user.username, homeNumber: user.homeNumber });
 });
 
-// Password Change
-router.post("/change-password", async (req, res) => {
+// Change password
+router.post('/change-password', async (req, res) => {
   const { username, oldPassword, newPassword } = req.body;
   const user = await User.findOne({ username });
-
-  if (!user) return res.status(400).json({ error: "User not found" });
-
-  const isMatch = await bcrypt.compare(oldPassword, user.password);
-  if (!isMatch) return res.status(401).json({ error: "Old password incorrect" });
-
-  user.password = await bcrypt.hash(newPassword, 10);
+  if (!user) return res.status(404).json({ message: 'User not found' });
+  const isMatch = await user.comparePassword(oldPassword);
+  if (!isMatch) return res.status(401).json({ message: 'Old password incorrect' });
+  user.password = newPassword;
   await user.save();
-  res.json({ message: "Password updated" });
+  res.json({ message: 'Password changed successfully' });
 });
 
-module.exports = router;
+module.exports = router; 

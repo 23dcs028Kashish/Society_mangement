@@ -33,9 +33,12 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import DescriptionIcon from "@mui/icons-material/Description";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import LockResetIcon from "@mui/icons-material/LockReset"; // icon for Change Password
 
 import MemberManagement from "./pages/MemberManagement";
-import Login from "./pages/login";
+import Login from './pages/login';
+import ChangePassword from './pages/ChangePassword';
+
 const navItems = [
   { text: "Member Management", icon: <HomeIcon />, path: "/members" },
   { text: "Maintenance & Billing", icon: <AccountBalanceWalletIcon />, path: "/maintenance" },
@@ -47,6 +50,7 @@ const navItems = [
   { text: "Document Management", icon: <DescriptionIcon />, path: "/documents" },
   { text: "Admin Panel", icon: <AdminPanelSettingsIcon />, path: "/admin" },
   { text: "Reports & Analytics", icon: <BarChartIcon />, path: "/reports" },
+  { text: "Change Password", icon: <LockResetIcon />, path: "/change-password" }, // ✅ ADDED HERE
 ];
 
 const drawerWidthExpanded = 260;
@@ -71,6 +75,7 @@ export default function App() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState(null);
 
   const drawerWidth = collapsed ? drawerWidthCollapsed : drawerWidthExpanded;
 
@@ -81,6 +86,8 @@ export default function App() {
       setCollapsed(!collapsed);
     }
   };
+
+  if (!user) return <Login setUser={setUser} />;
 
   const drawer = (
     <Box>
@@ -121,6 +128,10 @@ export default function App() {
                 {darkMode ? <Brightness7 /> : <Brightness4 />}
               </IconButton>
               <Switch checked={darkMode} onChange={() => setDarkMode(!darkMode)} />
+              <span style={{ marginLeft: 16, marginRight: 8 }}>
+                {user.username} ({user.role})
+              </span>
+              <button onClick={() => setUser(null)} style={{ marginLeft: 8 }}>Logout</button>
             </Toolbar>
           </AppBar>
 
@@ -166,7 +177,6 @@ export default function App() {
             <Toolbar />
             <Routes>
               <Route path="/members" element={<MemberManagement />} />
-              <Route path="/login" element={<Login />} />
               <Route path="/maintenance" element={<Placeholder title="Maintenance & Billing" />} />
               <Route path="/accounting" element={<Placeholder title="Accounting & Finance" />} />
               <Route path="/complaints" element={<Placeholder title="Complaint & Service Request" />} />
@@ -176,6 +186,7 @@ export default function App() {
               <Route path="/documents" element={<Placeholder title="Document Management" />} />
               <Route path="/admin" element={<Placeholder title="Admin Panel" />} />
               <Route path="/reports" element={<Placeholder title="Reports & Analytics" />} />
+              <Route path="/change-password" element={<ChangePassword user={user} />} /> {/* ✅ NEW ROUTE */}
               <Route path="*" element={<Placeholder title="Welcome" />} />
             </Routes>
           </Box>
