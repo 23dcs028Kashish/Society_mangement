@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 function ChangePassword({ user }) {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const handleChange = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setError('');
+    
     try {
-      await axios.post('http://localhost:5001/api/auth/change-password', {
-        username: user.username,
+      await api.post('/auth/change-password', {
         oldPassword,
         newPassword
       });
       setMessage('Password changed successfully');
+      setOldPassword('');
+      setNewPassword('');
     } catch (err) {
-      setMessage('Error changing password');
+      setError(err.response?.data?.message || 'Error changing password');
     }
   };
 
@@ -26,7 +31,8 @@ function ChangePassword({ user }) {
       <input type="password" placeholder="Old Password" value={oldPassword} onChange={e => setOldPassword(e.target.value)} required style={{ width: '100%', marginBottom: 16, padding: 8 }} />
       <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required style={{ width: '100%', marginBottom: 16, padding: 8 }} />
       <button type="submit" style={{ width: '100%', padding: 10 }}>Change Password</button>
-      {message && <div style={{marginTop: 12}}>{message}</div>}
+      {message && <div style={{marginTop: 12, color: 'green'}}>{message}</div>}
+      {error && <div style={{marginTop: 12, color: 'red'}}>{error}</div>}
     </form>
   );
 }
