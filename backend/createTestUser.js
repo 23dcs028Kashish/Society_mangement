@@ -52,6 +52,15 @@ async function createTestUser() {
         phone: '9876543213'
       },
       {
+        username: 'Admin',
+        password: 'admin123',
+        role: 'admin',
+        homeNumber: 'A001',
+        name: 'Admin User',
+        email: 'admin@society.com',
+        phone: '9876543210'
+      },
+      {
         username: 'H201',
         password: 'resident123',
         role: 'resident',
