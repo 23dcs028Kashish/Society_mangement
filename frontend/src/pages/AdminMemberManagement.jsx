@@ -300,16 +300,16 @@ function AdminMemberManagement({ user }) {
                       }
                       secondary={
                         <Box>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" color="text.secondary" component="div">
                             Home: {member.homeNumber}
                           </Typography>
                           {member.email && (
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body2" color="text.secondary" component="div">
                               Email: {member.email}
                             </Typography>
                           )}
                           {member.phone && (
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body2" color="text.secondary" component="div">
                               Phone: {member.phone}
                             </Typography>
                           )}

@@ -11,7 +11,6 @@ import {
   AppBar,
   Typography,
   IconButton,
-  Switch,
   useMediaQuery,
   createTheme,
   ThemeProvider,
@@ -22,24 +21,24 @@ import {
   Brightness7,
 } from "@mui/icons-material";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next"; // ✅ for language switching
 
+// Icons
 import HomeIcon from "@mui/icons-material/Home";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import BuildIcon from "@mui/icons-material/Build";
 import EventIcon from "@mui/icons-material/Event";
-import SecurityIcon from "@mui/icons-material/Security";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import DescriptionIcon from "@mui/icons-material/Description";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BarChartIcon from "@mui/icons-material/BarChart";
-import LockResetIcon from "@mui/icons-material/LockReset"; // icon for Change Password
 import ListItemButton from "@mui/material/ListItemButton";
 
+// Pages & Components
 import MemberManagement from "./pages/MemberManagement";
-import Login from './pages/Login';
-import ChangePassword from './pages/ChangePassword';
-import Maintenance from "./pages/Maintenance"; // ✅ Import
+import Login from "./pages/Login";
+import ChangePassword from "./pages/ChangePassword";
+import Maintenance from "./pages/Maintenance";
 import UserMaintenance from "./pages/UserMaintenance";
 import AdminMaintenance from "./pages/AdminMaintenance";
 import AdminMemberManagement from "./pages/AdminMemberManagement";
@@ -58,29 +57,28 @@ import ProfileButton from "./components/ProfileButton";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import Transactions from "./pages/Transactions";
 
-
 // Admin navigation items
-const adminNavItems = [
-  { text: "Dashboard", icon: <HomeIcon />, path: "/admin-dashboard" },
-  { text: "Member Management", icon: <HomeIcon />, path: "/members" },
-  { text: "Maintenance & Billing", icon: <AccountBalanceWalletIcon />, path: "/maintenance" },
-  { text: "Finance Dashboard", icon: <ReceiptIcon />, path: "/finance-dashboard" },
-  { text: "Transactions", icon: <ReceiptIcon />, path: "/transactions" },
-  { text: "Complaint & Service Request", icon: <BuildIcon />, path: "/complaints" },
-  { text: "Event & Facility Booking", icon: <EventIcon />, path: "/admin-events" },
-  { text: "Notice Board / Communication", icon: <NotificationsIcon />, path: "/notices" },
-  { text: "Document Management", icon: <DescriptionIcon />, path: "/documents" },
-  { text: "Reports & Analytics", icon: <BarChartIcon />, path: "/reports" },
+const adminNavItemsBase = [
+  { key: "nav.dashboard", icon: <HomeIcon />, path: "/admin-dashboard" },
+  { key: "nav.memberManagement", icon: <HomeIcon />, path: "/members" },
+  { key: "nav.maintenanceBilling", icon: <AccountBalanceWalletIcon />, path: "/maintenance" },
+  { key: "nav.financeDashboard", icon: <ReceiptIcon />, path: "/finance-dashboard" },
+  { key: "nav.transactions", icon: <ReceiptIcon />, path: "/transactions" },
+  { key: "nav.complaints", icon: <BuildIcon />, path: "/complaints" },
+  { key: "nav.eventsAdmin", icon: <EventIcon />, path: "/admin-events" },
+  { key: "nav.notices", icon: <NotificationsIcon />, path: "/notices" },
+  { key: "nav.documents", icon: <DescriptionIcon />, path: "/documents" },
+  { key: "nav.reports", icon: <BarChartIcon />, path: "/reports" },
 ];
 
 // User navigation items
-const userNavItems = [
-  { text: "Dashboard", icon: <HomeIcon />, path: "/user-dashboard" },
-  { text: "Maintenance & Billing", icon: <AccountBalanceWalletIcon />, path: "/maintenance" },
-  { text: "Complaint & Service Request", icon: <BuildIcon />, path: "/complaints" },
-  { text: "Event & Facility Booking", icon: <EventIcon />, path: "/events" },
-  { text: "Notice Board / Communication", icon: <NotificationsIcon />, path: "/notices" },
-  { text: "Document Management", icon: <DescriptionIcon />, path: "/documents" },
+const userNavItemsBase = [
+  { key: "nav.dashboard", icon: <HomeIcon />, path: "/user-dashboard" },
+  { key: "nav.maintenanceBilling", icon: <AccountBalanceWalletIcon />, path: "/maintenance" },
+  { key: "nav.complaints", icon: <BuildIcon />, path: "/complaints" },
+  { key: "nav.eventsUser", icon: <EventIcon />, path: "/events" },
+  { key: "nav.notices", icon: <NotificationsIcon />, path: "/notices" },
+  { key: "nav.documents", icon: <DescriptionIcon />, path: "/documents" },
 ];
 
 const drawerWidthExpanded = 260;
@@ -106,12 +104,17 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState(() => {
-    // Check for existing user data in localStorage
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [showLoading, setShowLoading] = useState(false);
   const [isFirstLogin, setIsFirstLogin] = useState(true);
+
+  const { t, i18n } = useTranslation(); // ✅ i18n hook
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem('lng', lng);
+  };
 
   const drawerWidth = collapsed ? drawerWidthCollapsed : drawerWidthExpanded;
 
@@ -130,8 +133,7 @@ export default function App() {
   };
 
   const handleProfileClick = () => {
-    // Navigate to profile page
-    window.location.href = '/profile';
+    window.location.href = "/profile";
   };
 
   const handleLoadingComplete = () => {
@@ -139,21 +141,22 @@ export default function App() {
     setIsFirstLogin(false);
   };
 
-  // Determine which navigation items to show based on user role
-  const navItems = user?.role === 'admin' ? adminNavItems : userNavItems;
+  // Navigation items based on role
+  const navItemsBase = user?.role === "admin" ? adminNavItemsBase : userNavItemsBase;
+  const navItems = navItemsBase.map(item => ({ ...item, text: t(item.key) }));
 
   const drawer = (
     <Box>
       <Toolbar />
       <List>
         {navItems.map((item) => (
-          <ListItem key={item.text} disablePadding sx={{ display: 'block' }}>
+          <ListItem key={item.text} disablePadding sx={{ display: "block" }}>
             <ListItemButton
               component={Link}
               to={item.path}
               sx={{
                 minHeight: 48,
-                justifyContent: collapsed ? 'center' : 'initial',
+                justifyContent: collapsed ? "center" : "initial",
                 px: 2.5,
               }}
             >
@@ -173,7 +176,7 @@ export default function App() {
       </List>
     </Box>
   );
-  
+
   return (
     <ThemeProvider theme={theme}>
       <Router>
@@ -186,22 +189,49 @@ export default function App() {
             <CssBaseline />
             <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
               <Toolbar>
-                <IconButton color="inherit" edge="start" onClick={handleDrawerToggle} sx={{ mr: 2 }}>
+                <IconButton
+                  color="inherit"
+                  edge="start"
+                  onClick={handleDrawerToggle}
+                  sx={{ mr: 2 }}
+                >
                   <MenuIcon />
                 </IconButton>
+
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                  Society Management System
+                  {t('app.title')}
                 </Typography>
-                <IconButton color="inherit" onClick={() => setDarkMode(!darkMode)}>
+
+                {/* ✅ Language Switcher */}
+                <select
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  value={i18n.language}
+                  style={{
+                    marginRight: "16px",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    border: "1px solid #ccc",
+                  }}
+                >
+                  <option value="en">English</option>
+                  <option value="hi">हिन्दी</option>
+                  <option value="gu">ગુજરાતી</option>
+                </select>
+
+                {/* Dark mode toggle */}
+                <IconButton
+                  color="inherit"
+                  onClick={() => setDarkMode(!darkMode)}
+                >
                   {darkMode ? <Brightness7 /> : <Brightness4 />}
                 </IconButton>
-                
-                <ProfileButton 
+
+                {/* Profile Button */}
+                <ProfileButton
                   user={user}
                   onProfileClick={handleProfileClick}
                   onLogout={handleLogout}
                 />
-
               </Toolbar>
             </AppBar>
 
@@ -234,6 +264,7 @@ export default function App() {
               </Drawer>
             )}
 
+            {/* Main Content */}
             <Box
               component="main"
               sx={{
@@ -246,52 +277,74 @@ export default function App() {
             >
               <Toolbar />
               <Routes>
-                              {/* Admin Routes */}
-              {user.role === 'admin' && (
-                <>
-                  <Route path="/admin-dashboard" element={<AdminDashboard user={user} />} />
-                  <Route path="/members" element={<AdminMemberManagement user={user} />} />
-                  <Route path="/admin-events" element={<AdminEvents user={user} />} />
-                  <Route path="/finance-dashboard" element={<FinanceDashboard user={user} />} />
-                  <Route path="/transactions" element={<Transactions user={user} />} />
-                  <Route path="/security" element={<Placeholder title="Security & Visitor Management" />} />
-                  <Route path="/reports" element={<Placeholder title="Reports & Analytics" />} />
-                </>
-              )}
-                
+                {/* Admin Routes */}
+                {user.role === "admin" && (
+                  <>
+                    <Route path="/admin-dashboard" element={<AdminDashboard user={user} />} />
+                    <Route path="/members" element={<AdminMemberManagement user={user} />} />
+                    <Route path="/admin-events" element={<AdminEvents user={user} />} />
+                    <Route path="/finance-dashboard" element={<FinanceDashboard user={user} />} />
+                    <Route path="/transactions" element={<Transactions user={user} />} />
+                    <Route path="/reports" element={<Placeholder title="Reports & Analytics" />} />
+                  </>
+                )}
+
                 {/* User Routes */}
-                {user.role === 'resident' && (
+                {user.role === "resident" && (
                   <Route path="/user-dashboard" element={<UserDashboard user={user} />} />
                 )}
-                
-                              {/* Shared Routes */}
-              <Route path="/maintenance" element={
-                user.role === 'admin' ? 
-                <AdminMaintenance user={user} /> : 
-                <UserMaintenance user={user} />
-              } />
-              <Route path="/complaints" element={
-                user.role === 'admin' ? 
-                <AdminComplaints user={user} /> : 
-                <UserComplaints user={user} />
-              } />
-              <Route path="/pay-maintenance" element={<PayMaintenance />} />
-              <Route path="/events" element={<Events user={user} />} />
-              <Route path="/notices" element={<Notices user={user} />} />
-              <Route path="/documents" element={<Documents user={user} />} />
-              <Route path="/change-password" element={<ChangePassword user={user} />} />
-              <Route path="/profile" element={<UserProfile user={user} onLogout={() => {
-                setUser(null);
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-              }} />} />
-                
-                {/* Default redirect based on role */}
-                <Route path="*" element={
-                  user.role === 'admin' ? 
-                  <AdminDashboard user={user} /> : 
-                  <UserDashboard user={user} />
-                } />
+
+                {/* Shared Routes */}
+                <Route
+                  path="/maintenance"
+                  element={
+                    user.role === "admin" ? (
+                      <AdminMaintenance user={user} />
+                    ) : (
+                      <UserMaintenance user={user} />
+                    )
+                  }
+                />
+                <Route
+                  path="/complaints"
+                  element={
+                    user.role === "admin" ? (
+                      <AdminComplaints user={user} />
+                    ) : (
+                      <UserComplaints user={user} />
+                    )
+                  }
+                />
+                <Route path="/pay-maintenance" element={<PayMaintenance />} />
+                <Route path="/events" element={<Events user={user} />} />
+                <Route path="/notices" element={<Notices user={user} />} />
+                <Route path="/documents" element={<Documents user={user} />} />
+                <Route path="/change-password" element={<ChangePassword user={user} />} />
+                <Route
+                  path="/profile"
+                  element={
+                    <UserProfile
+                      user={user}
+                      onLogout={() => {
+                        setUser(null);
+                        localStorage.removeItem("token");
+                        localStorage.removeItem("user");
+                      }}
+                    />
+                  }
+                />
+
+                {/* Default Redirect */}
+                <Route
+                  path="*"
+                  element={
+                    user.role === "admin" ? (
+                      <AdminDashboard user={user} />
+                    ) : (
+                      <UserDashboard user={user} />
+                    )
+                  }
+                />
               </Routes>
             </Box>
           </Box>
